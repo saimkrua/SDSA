@@ -31,17 +31,6 @@ app.post("/placeorder", (req, res) => {
     quantity: req.body.quantity,
   };
 
-  let foundType = "unknown"; // Default to unknown
-  for (const [type, items] of Object.entries(foodCategories)) {
-    if (items.includes(orderItem.name)) {
-      foundType = type; // Set to the matching food type
-      break; // Exit the loop once found
-    }
-  }
-
-  orderItem.foodType = foundType;
-
-  // Send the order msg to RabbitMQ
   amqp.connect("amqp://localhost", function (error0, connection) {
     if (error0) {
       throw error0;
@@ -52,18 +41,24 @@ app.post("/placeorder", (req, res) => {
       }
 
       var exchange = "order_queue";
+      var routingKey = "order_routing_key"; // Specify the routing key for the direct queue
 
-      // Declare a topic exchange
-      channel.assertExchange(exchange, "topic", {
+      // Declare a direct exchange
+      channel.assertExchange(exchange, "direct", {
         durable: true,
       });
 
       // Publish the order with the appropriate routing key
-      channel.publish(exchange, Buffer.from(JSON.stringify(orderItem)), {
-        persistent: true,
-      });
+      channel.publish(
+        exchange,
+        routingKey,
+        Buffer.from(JSON.stringify(orderItem)),
+        {
+          persistent: true,
+        }
+      );
 
-      console.log(" [x] Sent '%s'", orderItem);
+      console.log(" [x] Sent '%s'", JSON.stringify(orderItem));
     });
   });
 });
