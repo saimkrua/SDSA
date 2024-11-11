@@ -24,28 +24,13 @@ app.get("/", (req, res) => {
 
 var amqp = require("amqplib/callback_api");
 
-const foodCategories = {
-  thai: [
-    "Tomyam Gung",
-    "Somtam",
-    "Pad-Thai",
-    "Fried rice",
-    "Kraprao",
-    "Kai-Jiew",
-  ],
-  japanese: ["Sukiyaki"],
-  general: ["Fried egg", "Fried chicken"],
-};
-
 app.post("/placeorder", (req, res) => {
-  //const updateMenuItem = {
   var orderItem = {
     id: req.body.id,
     name: req.body.name,
     quantity: req.body.quantity,
   };
 
-  // Logic to determine the food type
   let foundType = "unknown"; // Default to unknown
   for (const [type, items] of Object.entries(foodCategories)) {
     if (items.includes(orderItem.name)) {
@@ -67,9 +52,6 @@ app.post("/placeorder", (req, res) => {
       }
 
       var exchange = "order_queue";
-      var routingKey = `food.${orderItem.foodType.toLowerCase()}.${orderItem.name
-        .toLowerCase()
-        .replace(" ", "-")}`;
 
       // Declare a topic exchange
       channel.assertExchange(exchange, "topic", {
@@ -77,28 +59,16 @@ app.post("/placeorder", (req, res) => {
       });
 
       // Publish the order with the appropriate routing key
-      channel.publish(
-        exchange,
-        routingKey,
-        Buffer.from(JSON.stringify(orderItem)),
-        {
-          persistent: true,
-        }
-      );
+      channel.publish(exchange, Buffer.from(JSON.stringify(orderItem)), {
+        persistent: true,
+      });
 
-      console.log(" [x] Sent '%s' with key '%s'", orderItem, routingKey);
+      console.log(" [x] Sent '%s'", orderItem);
     });
   });
 });
-//console.log("update Item %s %s %d",updateMenuItem.id, req.body.name, req.body.quantity);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running at port %d", PORT);
 });
-
-//var data = [{
-//   name: '********',
-//   company: 'JP Morgan',
-//   designation: 'Senior Application Engineer'
-//}];
