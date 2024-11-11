@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdsa-server
+  namespace: sdsa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdsa-server
+  template:
+    metadata:
+      labels:
+        app: sdsa-server
+    spec:
+      containers:
+        - name: sdsa-server
+          image: papongun/sdsa-server
+          ports:
+            - containerPort: 30043

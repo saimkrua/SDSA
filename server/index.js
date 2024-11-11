@@ -76,10 +76,10 @@ server.addService(restaurantProto.RestaurantService.service, {
 });
 
 server.bindAsync(
-  "127.0.0.1:30043",
+  "0.0.0.0:30043", // Bind to all network interfaces (inside the container)
   grpc.ServerCredentials.createInsecure(),
   () => {
     server.start();
   }
 );
-console.log("Server running at http://127.0.0.1:30043");
+console.log("Server running at 0.0.0.0:30043");

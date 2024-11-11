@@ -31,36 +31,39 @@ app.post("/placeorder", (req, res) => {
     quantity: req.body.quantity,
   };
 
-  amqp.connect("amqp://localhost", function (error0, connection) {
-    if (error0) {
-      throw error0;
-    }
-    connection.createChannel(function (error1, channel) {
-      if (error1) {
-        throw error1;
+  amqp.connect(
+    process.env.RABBITMQ_URL || "amqp://localhost",
+    function (error0, connection) {
+      if (error0) {
+        throw error0;
       }
-
-      var exchange = "order_queue";
-      var routingKey = "order_routing_key"; // Specify the routing key for the direct queue
-
-      // Declare a direct exchange
-      channel.assertExchange(exchange, "direct", {
-        durable: true,
-      });
-
-      // Publish the order with the appropriate routing key
-      channel.publish(
-        exchange,
-        routingKey,
-        Buffer.from(JSON.stringify(orderItem)),
-        {
-          persistent: true,
+      connection.createChannel(function (error1, channel) {
+        if (error1) {
+          throw error1;
         }
-      );
 
-      console.log(" [x] Sent '%s'", JSON.stringify(orderItem));
-    });
-  });
+        var exchange = "order_queue";
+        var routingKey = "order_routing_key"; // Specify the routing key for the direct queue
+
+        // Declare a direct exchange
+        channel.assertExchange(exchange, "direct", {
+          durable: true,
+        });
+
+        // Publish the order with the appropriate routing key
+        channel.publish(
+          exchange,
+          routingKey,
+          Buffer.from(JSON.stringify(orderItem)),
+          {
+            persistent: true,
+          }
+        );
+
+        console.log(" [x] Sent '%s'", JSON.stringify(orderItem));
+      });
+    }
+  );
 });
 
 const PORT = process.env.PORT || 3000;

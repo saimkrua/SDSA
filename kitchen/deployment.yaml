@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdsa-kitchen
+  namespace: sdsa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdsa-kitchen
+  template:
+    metadata:
+      labels:
+        app: sdsa-kitchen
+    spec:
+      containers:
+        - name: sdsa-kitchen
+          image: papongun/sdsa-kitchen
+          env:
+            - name: AMQP_URL
+              value: "amqp://rabbitmq-service"
+          ports:
+            - containerPort: 8080

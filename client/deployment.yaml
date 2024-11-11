@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdsa-client
+  labels:
+    app: sdsa-client
+  namespace: sdsa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdsa-client
+  template:
+    metadata:
+      labels:
+        app: sdsa-client
+    spec:
+      containers:
+        - name: sdsa-client
+          image: papongun/sdsa-client
+          ports:
+            - containerPort: 3000
+          env:
+            - name: RABBITMQ_URL
+              value: "amqp://rabbitmq-service"
+            - name: PORT
+              value: "3000"
