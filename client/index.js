@@ -13,14 +13,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
-  console.log("Getting menu from server");
   client.getAllMenu(null, (err, data) => {
     if (!err) {
       res.render("menu", {
         results: data.menu,
       });
     } else {
-      console.error("Failed to get menu", err);
       res.status(500).send("Failed to get menu");
     }
   });
@@ -34,9 +32,16 @@ app.get("/health-check", (req, res) => {
 var amqp = require("amqplib/callback_api");
 
 app.post("/placeorder", (req, res) => {
+  const menu = client.get({ id: req.body.id }, (err, data) => {
+    if (err) {
+      res.status(404).send("Failed to get menu item");
+      return res.redirect("/");
+    }
+  });
+
   const orderItem = {
     id: req.body.id,
-    name: req.body.name,
+    name: menu.name,
     quantity: req.body.quantity,
   };
 
