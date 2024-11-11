@@ -13,19 +13,28 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => {
+  console.log("Getting menu from server");
   client.getAllMenu(null, (err, data) => {
     if (!err) {
       res.render("menu", {
         results: data.menu,
       });
+    } else {
+      console.error("Failed to get menu", err);
+      res.status(500).send("Failed to get menu");
     }
   });
+});
+
+app.get("/health-check", (req, res) => {
+  console.log("Health check request received");
+  res.status(200).send("OK");
 });
 
 var amqp = require("amqplib/callback_api");
 
 app.post("/placeorder", (req, res) => {
-  var orderItem = {
+  const orderItem = {
     id: req.body.id,
     name: req.body.name,
     quantity: req.body.quantity,
@@ -35,32 +44,35 @@ app.post("/placeorder", (req, res) => {
     process.env.RABBITMQ_URL || "amqp://localhost",
     function (error0, connection) {
       if (error0) {
-        throw error0;
+        console.error("Failed to connect to RabbitMQ", error0);
+        return res.status(500).send("Failed to connect to RabbitMQ");
       }
+
       connection.createChannel(function (error1, channel) {
         if (error1) {
-          throw error1;
+          console.error("Failed to create channel", error1);
+          return res.status(500).send("Failed to create channel");
         }
 
-        var exchange = "order_queue";
-        var routingKey = "order_routing_key"; // Specify the routing key for the direct queue
+        const exchange = "order_queue";
+        const routingKey = "order_routing_key";
 
-        // Declare a direct exchange
-        channel.assertExchange(exchange, "direct", {
-          durable: true,
-        });
+        channel.assertExchange(exchange, "direct", { durable: true });
 
-        // Publish the order with the appropriate routing key
         channel.publish(
           exchange,
           routingKey,
           Buffer.from(JSON.stringify(orderItem)),
-          {
-            persistent: true,
-          }
+          { persistent: true }
         );
 
         console.log(" [x] Sent '%s'", JSON.stringify(orderItem));
+
+        // Close the connection after publishing
+        setTimeout(() => {
+          connection.close();
+          res.redirect("/"); // Redirect to homepage after sending the message
+        }, 500);
       });
     }
   );

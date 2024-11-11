@@ -6,6 +6,9 @@ amqp.connect(
     if (error0) {
       throw error0;
     }
+
+    console.log(" [*] Successfully connected to RabbitMQ");
+
     connection.createChannel(function (error1, channel) {
       if (error1) {
         throw error1;

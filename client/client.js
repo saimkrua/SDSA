@@ -14,7 +14,7 @@ var restaurantService =
   grpc.loadPackageDefinition(packageDefinition).RestaurantService;
 
 const client = new restaurantService(
-  "localhost:30043",
+  process.env.SERVER_URL || "localhost:30043",
   grpc.credentials.createInsecure()
 );
 
