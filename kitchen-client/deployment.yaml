@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdsa-kitchen-client
+  namespace: sdsa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdsa-kitchen-client
+  template:
+    metadata:
+      labels:
+        app: sdsa-kitchen-client
+    spec:
+      containers:
+        - name: sdsa-kitchen-client
+          image: papongun/sdsa-kitchen-client
+          ports:
+            - containerPort: 3000

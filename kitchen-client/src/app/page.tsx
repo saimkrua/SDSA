@@ -1,12 +1,29 @@
-import useOrders from "./hooks/useOrders";
+"use client";
+import useOrders from "@/hooks/useOrders";
 
 export default function Home() {
-  const { loading, orders, deleteOrder } = useOrders();
+  const { loading, error, orders, deleteOrder } = useOrders();
 
   if (loading) {
     return (
       <div className="flex w-full h-full items-center justify-center">
         Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex w-full h-full items-center justify-center">
+        {error}
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="flex w-full h-full items-center justify-center">
+        No orders
       </div>
     );
   }

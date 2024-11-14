@@ -22,6 +22,12 @@ cd /d "%BASE_DIR%kitchen"
 docker build -t papongun/sdsa-kitchen .
 docker image push papongun/sdsa-kitchen
 
+rem Build kitchen-client image
+echo Building kitchen-client image...
+cd /d "%BASE_DIR%kitchen-client"
+docker build -t papongun/sdsa-kitchen-client .
+docker image push papongun/sdsa-kitchen-client
+
 echo All images have been built successfully.
 
 endlocal

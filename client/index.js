@@ -32,55 +32,57 @@ app.get("/health-check", (req, res) => {
 var amqp = require("amqplib/callback_api");
 
 app.post("/placeorder", (req, res) => {
-  const menu = client.get({ id: req.body.id }, (err, data) => {
+  client.get({ id: req.body.id }, (err, data) => {
     if (err) {
       res.status(404).send("Failed to get menu item");
       return res.redirect("/");
     }
-  });
 
-  const orderItem = {
-    id: req.body.id,
-    name: menu.name,
-    quantity: req.body.quantity,
-  };
+    console.log("Menu item found: ", data);
 
-  amqp.connect(
-    process.env.RABBITMQ_URL || "amqp://localhost",
-    function (error0, connection) {
-      if (error0) {
-        console.error("Failed to connect to RabbitMQ", error0);
-        return res.status(500).send("Failed to connect to RabbitMQ");
-      }
+    const orderItem = {
+      id: req.body.id,
+      name: data.name,
+      quantity: req.body.quantity,
+    };
 
-      connection.createChannel(function (error1, channel) {
-        if (error1) {
-          console.error("Failed to create channel", error1);
-          return res.status(500).send("Failed to create channel");
+    amqp.connect(
+      process.env.RABBITMQ_URL || "amqp://localhost",
+      function (error0, connection) {
+        if (error0) {
+          console.error("Failed to connect to RabbitMQ", error0);
+          return res.status(500).send("Failed to connect to RabbitMQ");
         }
 
-        const exchange = "order_queue";
-        const routingKey = "order_routing_key";
+        connection.createChannel(function (error1, channel) {
+          if (error1) {
+            console.error("Failed to create channel", error1);
+            return res.status(500).send("Failed to create channel");
+          }
 
-        channel.assertExchange(exchange, "direct", { durable: true });
+          const exchange = "order_queue";
+          const routingKey = "order_routing_key";
 
-        channel.publish(
-          exchange,
-          routingKey,
-          Buffer.from(JSON.stringify(orderItem)),
-          { persistent: true }
-        );
+          channel.assertExchange(exchange, "direct", { durable: true });
 
-        console.log(" [x] Sent '%s'", JSON.stringify(orderItem));
+          channel.publish(
+            exchange,
+            routingKey,
+            Buffer.from(JSON.stringify(orderItem)),
+            { persistent: true }
+          );
 
-        // Close the connection after publishing
-        setTimeout(() => {
-          connection.close();
-          res.redirect("/"); // Redirect to homepage after sending the message
-        }, 500);
-      });
-    }
-  );
+          console.log(" [x] Sent '%s'", JSON.stringify(orderItem));
+
+          // Close the connection after publishing
+          setTimeout(() => {
+            connection.close();
+            res.redirect("/"); // Redirect to homepage after sending the message
+          }, 500);
+        });
+      }
+    );
+  });
 });
 
 const PORT = process.env.PORT || 3000;

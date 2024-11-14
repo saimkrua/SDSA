@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: sdsa-client-service
+  name: sdsa-kitchen-client-service
   namespace: sdsa
 spec:
   selector:
-    app: sdsa-client
+    app: sdsa-kitchen-client
   ports:
     - protocol: TCP
-      port: 3000
+      port: 3001
       targetPort: 3000
   type: ClusterIP

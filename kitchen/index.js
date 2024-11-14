@@ -1,4 +1,28 @@
-var amqp = require("amqplib/callback_api");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const amqp = require("amqplib/callback_api");
+
+const httpServer = createServer();
+const io = require("socket.io")(httpServer, {
+  cors: {
+    origin: "http://localhost:3001",
+    methods: ["GET", "POST"],
+  },
+});
+const orders = [];
+
+io.on("connection", (socket) => {
+  console.log("Client connected", socket.id);
+});
+
+io.on("get_orders", () => {
+  io.emit("orders", orders);
+});
+
+io.on("delete_order", (oid) => {
+  orders.filter((order) => order.oid !== oid);
+  io.emit("order_deleted", oid);
+});
 
 amqp.connect(
   process.env.AMQP_URL || "amqp://rabbitmq-service",
@@ -40,11 +64,9 @@ amqp.connect(
             function (msg) {
               var order = JSON.parse(msg.content.toString());
               console.log(" [x] Received order:", order);
-
-              var processingTime = order.quantity * 1000;
-              setTimeout(function () {
-                channel.ack(msg);
-              }, processingTime);
+              orders.push(order);
+              io.emit("order_added", order);
+              channel.ack(msg);
             },
             {
               noAck: false,
@@ -55,3 +77,5 @@ amqp.connect(
     });
   }
 );
+
+httpServer.listen(3000);
