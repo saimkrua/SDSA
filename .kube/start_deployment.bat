@@ -2,8 +2,11 @@
 rem Set the base directory where the subdirectories are located
 set BASE_DIR=..
 
+kubectl apply -f %BASE_DIR%\mongodb\mongo-bitnami.yaml
+kubectl apply -f %BASE_DIR%\rabbitMQ\rabbitmq-persist.yaml
+
 rem Define the list of subdirectories where the yaml files are located
-set DIRECTORIES=client server kitchen rabbitMQ
+set DIRECTORIES=client server kitchen 
 
 rem Loop through each directory
 for %%d in (%DIRECTORIES%) do (
