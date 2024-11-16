@@ -76,7 +76,7 @@ server.addService(restaurantProto.RestaurantService.service, {
 });
 
 server.bindAsync(
-  "0.0.0.0:30043", // Bind to all network interfaces (inside the container)
+  "0.0.0.0:30043",
   grpc.ServerCredentials.createInsecure(),
   () => {
     server.start();

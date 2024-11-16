@@ -19,5 +19,7 @@ spec:
           env:
             - name: AMQP_URL
               value: "amqp://rabbitmq-service"
+            - name: MONGO_URL
+              value: "mongodb://admin:password@mongodb-service"
           ports:
             - containerPort: 8080
